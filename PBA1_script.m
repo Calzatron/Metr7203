@@ -14,5 +14,8 @@ Cr = 0.01;
 p = 1.3;
 Cd = 0.36;
 A = 2.2;
-%%
+gear = 1;
+%% Proportional Integral Controller
+Ki = 0.1
+Kp = 0.5
 
