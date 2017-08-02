@@ -1,4 +1,4 @@
-function [ Alpha_ ] = Get_alpha( Vel )
+function Alpha_ = Get_alpha( Vel )
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
     global alpha
