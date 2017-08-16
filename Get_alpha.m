@@ -1,6 +1,7 @@
 function Alpha_ = Get_alpha( Vel )
-%UNTITLED5 Summary of this function goes here
-%   Detailed explanation goes here
+% Selects the highest gear for the speed of the car, Vel,
+% returning the effective wheel radius Alpha
+%   
     global alpha
     global wm
     %check if velocity is above maximum -> gear change
