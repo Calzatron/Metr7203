@@ -72,3 +72,6 @@ V = [x, y]*P*[x; y];
 %     2*Kp^2*Tm*Vr*alpha^2*beta*wm))/(2*Ki*Kp*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta - 
 %     2*Vr*alpha*beta*wm)) - (m*wm^2*x)/(2*Ki*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta - 
 %     2*Vr*alpha*beta*wm)));
+
+
+ 

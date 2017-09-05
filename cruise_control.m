@@ -1,5 +1,6 @@
 function dy = cruise_control(t, y)
-
+% computes and outputs the derivative of velocity and integral 
+% (of PI controller)states
 %% dy = [v', z'] = [a, e];
 % where v is the velocity and z is the integral state
 % y = [v, z], which are the initial states
@@ -61,6 +62,7 @@ F = F_app - F_d;
 % Body
 a = F/m;
 
+% Outputs
 dy(1) = a;      %derivative of velocity
 dy(2) = e;      %derivative of integral state is current error
 

@@ -77,3 +77,45 @@ A_ = simplify(subs(A, [M m c l rho g], [10 80 0.1 1 0.01 9.81]));
 B_ = simplify(subs(B, [M m c l rho g], [10 80 0.1 1 0.01 9.81]));
 
 EIG = simplify(eig(A_));
+
+%% Transformation
+% exists if det(W) != 0
+W  = [B A*B A^2*B A^3*B];
+W_check = det(W);
+
+syms s
+
+I = eye(4);
+CE = det(s*I - A_);
+CE = collect(CE, s);
+
+% for controllability, Ac = [-a1 -a2 ... -an;
+%                             1   0  ...  0;
+%                             0   1  ...  0;
+%                             0   0  . 1  0];
+
+A_con = [ -89/8000 70631999/800000 981/10000 0;
+            1 0 0 0;
+            0 1 0 0;
+            0 0 1 0];
+W_con = [ 1 -(89/8000) ((89/8000)^2 - (-70631999/800000)) (-(89/8000)^3 + (70631999/800000)^2 - (-981/10000));
+          0 1 -(89/8000) ((89/8000)^2 - (-70631999/800000));
+          0 0 1 -(89/8000);
+          0 0 0 1];
+      
+W_ = [B_, A_*B_, A_^2*B_, A_^3*B_];
+
+T = W_con*W_^(-1);
+Ac = T*A_*T^-1;
+
+
+% [V, D] = eig(A_);
+% %V contains column vectors, which are the eigenvectors, this is the
+% %transformation T
+% 
+% z = (V^-1)*x;
+% Az = (V^-1)*A_*V;
+
+
+
+

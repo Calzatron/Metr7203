@@ -1,0 +1,206 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>PBA2_2_script</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-08-22"><meta name="DC.source" content="PBA2_2_script.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">construct the function F(x) = Ax + F_(x)</a></li><li><a href="#3">find P for the Lyapunov function (A^T)P+PA = Q,</a></li><li><a href="#4">check for global asymptopic stability</a></li><li><a href="#5">show lyapunov function</a></li></ul></div><pre class="codeinput">clear <span class="string">all</span>;
+
+syms <span class="string">p</span> <span class="string">Cd</span> <span class="string">A</span> <span class="string">Vr</span> <span class="string">m</span> <span class="string">g</span> <span class="string">Cr</span> <span class="string">Ki</span> <span class="string">alpha</span> <span class="string">Tm</span> <span class="string">beta</span> <span class="string">wm</span> <span class="string">Kp</span> <span class="string">v</span> <span class="string">z</span> <span class="string">Fd</span> <span class="string">u</span> <span class="string">L</span> <span class="string">real</span>
+
+
+L = Kp*(Vr-v)+Ki*z;                         <span class="comment">%Lambda</span>
+T = Tm*(1-beta*((alpha*v/wm)-1)^2);         <span class="comment">%Torque</span>
+Fd = g*Cr*sign(v) - (1/(2*m))*p*Cd*A*v^2;   <span class="comment">%Disturbance</span>
+
+<span class="comment">% x' = F(x)</span>
+F_vz = [(alpha/m)*L*T - Fd;
+        Vr - v];
+
+<span class="comment">% evaluate a change in coordinates of F(x)</span>
+syms <span class="string">x</span> <span class="string">y</span>
+F_vy = simplify(subs(F_vz, z, y + (m*Fd/(alpha*Ki*T))));
+F_xy = simplify(subs(F_vy, v, x + Vr));
+
+<span class="comment">%collect terms and find Jacobian matrix A_</span>
+F_xy = collect(F_xy, [x, y]);
+A_ = jacobian(F_xy, [x, y]);
+</pre><h2>construct the function F(x) = Ax + F_(x)<a name="2"></a></h2><p>higher order terms found in F_xy; a.k.a F_(x)</p><pre class="codeinput">F_ = [((Kp*Tm*alpha^3*beta)/(m*wm^2))*x^3 + (-(Ki*Tm*alpha^3*beta)/(m*wm^2))*x^2*y + (-(Kp*Tm*alpha*(- 2*Vr*beta*alpha^2 + 2*beta*wm*alpha))/(m*wm^2))*x^2 + ((Ki*Tm*alpha*(- 2*Vr*beta*alpha^2 + 2*beta*wm*alpha))/(m*wm^2))*x*y;
+        0];
+<span class="comment">% first order terms found in F_xy; A</span>
+A_1 = [((Kp*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta - 2*Vr*alpha*beta*wm))/(m*wm^2)), (-(Ki*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta - 2*Vr*alpha*beta*wm))/(m*wm^2));
+            -1, 0];
+</pre><h2>find P for the Lyapunov function (A^T)P+PA = Q,<a name="3"></a></h2><p>where Q is the negative identiy matrix. In this case, A_1 is used; as A is already the variable for area, and A_ is the jacobian and so still contains x and y variables</p><pre class="codeinput">syms <span class="string">p_11</span> <span class="string">p_12</span> <span class="string">p_22</span> <span class="string">real</span>
+
+P = [ p_11, p_12; p_12, p_22];
+Q = -eye(2);
+lyp = transpose(A_1)*P+P*A_1;
+solve(lyp == Q, [p_11, p_12, p_22]);
+P = simplify([ans.p_11, ans.p_12; ans.p_12, ans.p_22]);
+E = simplify(eig(P));           <span class="comment">% check the eigenvalues of P &gt; 0</span>
+T = simplify(trace(P));         <span class="comment">% check the trace of P &gt; 0</span>
+
+<span class="comment">%check result</span>
+EIG = subs(E, [Tm, wm, beta, alpha, g, Cr, p, Cd, A, Vr, Kp, Ki, m],[200, 450, 0.35, 16, 9.81, 0.01, 1.3, 0.36, 2.2, 20, 0.5, 0.1, 1000]);
+TRACE = subs(T, [Tm, wm, beta, alpha, g, Cr, p, Cd, A, Vr, Kp, Ki, m],[200, 450, 0.35, 16, 9.81, 0.01, 1.3, 0.36, 2.2, 20, 0.5, 0.1, 1000]);
+<span class="comment">% gives eigenvalues 0.3506 and 3.9294 &gt; 0</span>
+<span class="comment">% trace of 4.28 &gt; 0</span>
+<span class="comment">% therefore asymptopically stable</span>
+</pre><h2>check for global asymptopic stability<a name="4"></a></h2><p>check lim x-&gt; <tt>|F(x)</tt>|/||x|| is determinant</p><pre class="codeinput">F_mag = (F_(1)^2+F_(2)^2)^0.5;                              <span class="comment">%magnitude of higher order terms</span>
+x_mag = (x^2 + y^2)^0.5;                                    <span class="comment">%magnitude of equ variables</span>
+AS = subs(F_mag/x_mag, [x, y], [0.00000001,0.00000001]);    <span class="comment">%computed for values of x and y close to 0</span>
+GAS = subs(AS, [Tm, wm, beta, alpha, g, Cr, p, Cd, A, Vr, Kp, Ki, m],[200, 450, 0.35, 16, 9.81, 0.01, 1.3, 0.36, 2.2, 20, 0.5, 0.1, 1000]);
+<span class="comment">%the denominator reaches 0 first, thus it is only locally asymptopically</span>
+<span class="comment">%stable</span>
+<span class="comment">% GAS = 8.0433e+17 / 1.2360e+28</span>
+</pre><h2>show lyapunov function<a name="5"></a></h2><pre class="codeinput">V = [x, y]*P*[x; y];
+<span class="comment">% V = x*((m*wm^2*y)/(2*Ki*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta -</span>
+<span class="comment">%     2*Vr*alpha*beta*wm)) + (m*wm^2*x*(m*wm^2 + Ki*Tm*alpha*wm^2 - Ki*Tm*alpha*beta*wm^2 -</span>
+<span class="comment">%     Ki*Tm*Vr^2*alpha^3*beta + 2*Ki*Tm*Vr*alpha^2*beta*wm))/(2*Ki*Kp*Tm^2*alpha^2*(beta*wm^2</span>
+<span class="comment">%     - wm^2 + Vr^2*alpha^2*beta - 2*Vr*alpha*beta*wm)^2)) - y*((y*(Ki*m*wm^2 +</span>
+<span class="comment">%     Ki^2*Tm*alpha*wm^2 + Kp^2*Tm*alpha*wm^2 - Ki^2*Tm*Vr^2*alpha^3*beta - Kp^2*Tm*Vr^2*alpha^3*beta -</span>
+<span class="comment">%     Ki^2*Tm*alpha*beta*wm^2 - Kp^2*Tm*alpha*beta*wm^2 + 2*Ki^2*Tm*Vr*alpha^2*beta*wm +</span>
+<span class="comment">%     2*Kp^2*Tm*Vr*alpha^2*beta*wm))/(2*Ki*Kp*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta -</span>
+<span class="comment">%     2*Vr*alpha*beta*wm)) - (m*wm^2*x)/(2*Ki*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta -</span>
+<span class="comment">%     2*Vr*alpha*beta*wm)));</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clear all;
+
+syms p Cd A Vr m g Cr Ki alpha Tm beta wm Kp v z Fd u L real
+
+
+L = Kp*(Vr-v)+Ki*z;                         %Lambda
+T = Tm*(1-beta*((alpha*v/wm)-1)^2);         %Torque
+Fd = g*Cr*sign(v) - (1/(2*m))*p*Cd*A*v^2;   %Disturbance
+
+% x' = F(x) 
+F_vz = [(alpha/m)*L*T - Fd;
+        Vr - v];
+
+% evaluate a change in coordinates of F(x)
+syms x y
+F_vy = simplify(subs(F_vz, z, y + (m*Fd/(alpha*Ki*T))));
+F_xy = simplify(subs(F_vy, v, x + Vr));
+
+%collect terms and find Jacobian matrix A_
+F_xy = collect(F_xy, [x, y]);
+A_ = jacobian(F_xy, [x, y]);
+
+%% construct the function F(x) = Ax + F_(x)
+% higher order terms found in F_xy; a.k.a F_(x)
+F_ = [((Kp*Tm*alpha^3*beta)/(m*wm^2))*x^3 + (-(Ki*Tm*alpha^3*beta)/(m*wm^2))*x^2*y + (-(Kp*Tm*alpha*(- 2*Vr*beta*alpha^2 + 2*beta*wm*alpha))/(m*wm^2))*x^2 + ((Ki*Tm*alpha*(- 2*Vr*beta*alpha^2 + 2*beta*wm*alpha))/(m*wm^2))*x*y;
+        0];
+% first order terms found in F_xy; A
+A_1 = [((Kp*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta - 2*Vr*alpha*beta*wm))/(m*wm^2)), (-(Ki*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta - 2*Vr*alpha*beta*wm))/(m*wm^2));
+            -1, 0];
+        
+%% find P for the Lyapunov function (A^T)P+PA = Q, 
+% where Q is the negative identiy matrix. In this case, A_1 is used; as A 
+% is already the variable for area, and A_ is the jacobian and so still 
+% contains x and y variables
+
+syms p_11 p_12 p_22 real
+
+P = [ p_11, p_12; p_12, p_22];
+Q = -eye(2);
+lyp = transpose(A_1)*P+P*A_1;
+solve(lyp == Q, [p_11, p_12, p_22]);
+P = simplify([ans.p_11, ans.p_12; ans.p_12, ans.p_22]);
+E = simplify(eig(P));           % check the eigenvalues of P > 0
+T = simplify(trace(P));         % check the trace of P > 0
+
+%check result
+EIG = subs(E, [Tm, wm, beta, alpha, g, Cr, p, Cd, A, Vr, Kp, Ki, m],[200, 450, 0.35, 16, 9.81, 0.01, 1.3, 0.36, 2.2, 20, 0.5, 0.1, 1000]);
+TRACE = subs(T, [Tm, wm, beta, alpha, g, Cr, p, Cd, A, Vr, Kp, Ki, m],[200, 450, 0.35, 16, 9.81, 0.01, 1.3, 0.36, 2.2, 20, 0.5, 0.1, 1000]);
+% gives eigenvalues 0.3506 and 3.9294 > 0
+% trace of 4.28 > 0
+% therefore asymptopically stable
+
+%% check for global asymptopic stability
+% check lim x-> ||F(x)||/||x|| is determinant
+
+F_mag = (F_(1)^2+F_(2)^2)^0.5;                              %magnitude of higher order terms
+x_mag = (x^2 + y^2)^0.5;                                    %magnitude of equ variables
+AS = subs(F_mag/x_mag, [x, y], [0.00000001,0.00000001]);    %computed for values of x and y close to 0
+GAS = subs(AS, [Tm, wm, beta, alpha, g, Cr, p, Cd, A, Vr, Kp, Ki, m],[200, 450, 0.35, 16, 9.81, 0.01, 1.3, 0.36, 2.2, 20, 0.5, 0.1, 1000]);
+%the denominator reaches 0 first, thus it is only locally asymptopically
+%stable
+% GAS = 8.0433e+17 / 1.2360e+28
+
+%% show lyapunov function
+V = [x, y]*P*[x; y];
+% V = x*((m*wm^2*y)/(2*Ki*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta -
+%     2*Vr*alpha*beta*wm)) + (m*wm^2*x*(m*wm^2 + Ki*Tm*alpha*wm^2 - Ki*Tm*alpha*beta*wm^2 - 
+%     Ki*Tm*Vr^2*alpha^3*beta + 2*Ki*Tm*Vr*alpha^2*beta*wm))/(2*Ki*Kp*Tm^2*alpha^2*(beta*wm^2 
+%     - wm^2 + Vr^2*alpha^2*beta - 2*Vr*alpha*beta*wm)^2)) - y*((y*(Ki*m*wm^2 + 
+%     Ki^2*Tm*alpha*wm^2 + Kp^2*Tm*alpha*wm^2 - Ki^2*Tm*Vr^2*alpha^3*beta - Kp^2*Tm*Vr^2*alpha^3*beta - 
+%     Ki^2*Tm*alpha*beta*wm^2 - Kp^2*Tm*alpha*beta*wm^2 + 2*Ki^2*Tm*Vr*alpha^2*beta*wm + 
+%     2*Kp^2*Tm*Vr*alpha^2*beta*wm))/(2*Ki*Kp*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta - 
+%     2*Vr*alpha*beta*wm)) - (m*wm^2*x)/(2*Ki*Tm*alpha*(beta*wm^2 - wm^2 + Vr^2*alpha^2*beta - 
+%     2*Vr*alpha*beta*wm)));
+
+##### SOURCE END #####
+--></body></html>
