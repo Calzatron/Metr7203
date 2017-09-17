@@ -1,0 +1,54 @@
+#ifndef __c3_State_Flow_v0_h__
+#define __c3_State_Flow_v0_h__
+
+/* Include files */
+#include "sfc_sf.h"
+#include "sfc_mex.h"
+#include "rtwtypes.h"
+
+/* Type Definitions */
+#ifndef typedef_c3_ResolvedFunctionInfo
+#define typedef_c3_ResolvedFunctionInfo
+
+typedef struct {
+  const char * context;
+  const char * name;
+  const char * dominantType;
+  const char * resolved;
+  uint32_T fileTimeLo;
+  uint32_T fileTimeHi;
+  uint32_T mFileTimeLo;
+  uint32_T mFileTimeHi;
+} c3_ResolvedFunctionInfo;
+
+#endif                                 /*typedef_c3_ResolvedFunctionInfo*/
+
+#ifndef typedef_SFc3_State_Flow_v0InstanceStruct
+#define typedef_SFc3_State_Flow_v0InstanceStruct
+
+typedef struct {
+  SimStruct *S;
+  ChartInfoStruct chartInfo;
+  uint32_T chartNumber;
+  uint32_T instanceNumber;
+  uint8_T c3_doSetSimStateSideEffects;
+  const mxArray *c3_setSimStateSideEffectsInfo;
+} SFc3_State_Flow_v0InstanceStruct;
+
+#endif                                 /*typedef_SFc3_State_Flow_v0InstanceStruct*/
+
+/* Named Constants */
+
+/* Variable Declarations */
+
+/* Variable Definitions */
+
+/* Function Declarations */
+extern const mxArray *sf_c3_State_Flow_v0_get_eml_resolved_functions_info(void);
+
+/* Function Definitions */
+extern void sf_c3_State_Flow_v0_get_check_sum(mxArray *plhs[]);
+extern void c3_State_Flow_v0_method_dispatcher(SimStruct *S, int_T method, void *
+  data);
+
+#endif
