@@ -63,10 +63,10 @@ one=diag([1 1]);null=zeros(2,2);
 v0=5;
 
 % Matrices of state model
-A=[null one;-M\(K0+K2*v0^2) -M\(C0*v0)];
+A_b=[null one;-M\(K0+K2*v0^2) -M\(C0*v0)];
 bm=M\[0;1];
-B=[0;0;bm];    
-eig(A)';
+B_b=[0;0;bm];    
+eig(A_b)';
 
 % Eigenvalue check
 K=K0+K2*v0^2;

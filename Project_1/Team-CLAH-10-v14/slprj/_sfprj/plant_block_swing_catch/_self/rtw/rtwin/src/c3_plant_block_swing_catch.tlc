@@ -1,0 +1,44 @@
+%implements "chartSource" "C"
+%function ChartConfig(block, system) void
+  %createrecord chartConfiguration { ...
+          executeAtInitialization  0 ...
+  }
+  %return chartConfiguration
+%endfunction
+%function ChartDataMap(block, system) void
+  %createrecord ChartDataElements {\
+    NumChartData   4 \
+    ChartDataDefaults {\
+      RecordType   "ChartData"\
+      Dimensions   []\
+      IsTestPoint  0\
+    }\
+    ChartData {\
+      Name         "sfEvent"\
+      Description  "ActiveChartEvent"\
+      SFName       ""\
+      Path         ""\
+    }\
+    ChartData {\
+      Name         "isStable"\
+      Description  "IsstableBool"\
+      SFName       ""\
+      Path         ""\
+    }\
+    ChartData {\
+      Name         "is_active_c3_plant_block_swing_catch"\
+      Description  "StateIsActive"\
+      SFName       "is_active_c3_plant_block_swing_catch"\
+      Path         "is_active_c3_plant_block_swing_catch"\
+      IsTestPoint  1\
+    }\
+    ChartData {\
+      Name         "is_c3_plant_block_swing_catch"\
+      Description  "StateActiveChild"\
+      SFName       "is_c3_plant_block_swing_catch"\
+      Path         "is_c3_plant_block_swing_catch"\
+      IsTestPoint  1\
+    }\
+  }
+  %return ChartDataElements
+%endfunction

@@ -1,5 +1,8 @@
 clear all;
 close all;
+figure(1);
+figure(2);
+figure(3);
 % Parameters that are used for the Whipple bicycle model. The model is
 % based on the linearized 4th order model and analysis of eigenvalues
 % from IEEE CSM (25:4) August 2005 pp 26-47
@@ -79,7 +82,7 @@ k1 = K(1,1); k2=K(1,2); k3=K(2,1); k4=K(2,2);
 % form equations of motion using state-variables
 
 %x2_d = (-m2/m1)*x4_d - (c1*v0/m1)*x2 - (c2*v0/m1)*x4-(k1/m1)*x1-(k2/m1)*x3;
-%x4_d = (-m3/m4)*x2_d - (c3*v0/m4)*x2 - (c4*v0/m4)*x4-(k3/m4)*x1 - (k4/m4)*x3 - T;
+%x4_d = (-m3/m4)*x2_d - (c3*v0/m4)*x2 - (c4*v0/m4)*x4-(k3/m4)*x1 - (k4/m4)*x3 + T/m4;
 
 % rearrange and substitute expression for x2_d into eom of x4_d; eom2
 x2_d_eqn = (-m2/m1)*x4_d - (c1*v0/m1)*x2 - (c2*v0/m1)*x4-(k1/m1)*x1-(k2/m1)*x3;
@@ -160,36 +163,222 @@ k = acker(A, B, Pol);
 %    -1.2565    5.2073  -32.5252   -0.4145
 clp = eig(A-B*k);
 %% Part C
-% with state-feedback and input at delta
-kr = [0;0;-1;0];
-A_f = A-B*k;
-B_f = A*kr-B*k*kr;
-C = [0 0 1 0];
+
+%                     .  
+%      u        +     x  /----------\  x
+%      --> B_f ->() ---->| integral |-----> y=Cx ---> y
+%               +|        \---------/  |
+%                |                     | 
+%                |<---(A_f = A-Bk)<----|
+%
+% with state-feedback and input change in delta
+% x_d = (A - Bk) [x1 ; x2 ; (x3 + u) ; x4]
+% x_d = (A - Bk) x + (A-Bk)[0 ; 0 ; 1 ; 0] u
+% x_d = A_f * x + B_f * u
+
+sr = [0;0;1;0];                         % selected state for step input
+A_f = A-B*k;                            % state matrix with state-feedback
+B_f = A_f*sr;                           % construct B matrix
+C = [0;0;1;0]';                         % view only delta on the output
 D = 0;
 sys_delta = ss(A_f,B_f,C,D);
+
+% apply a step input with size of 0.002, plot response of each state
+% using the step() function
 opt = stepDataOptions;
-opt.StepAmplitude = 0.002;
-t = (0:0.05:10);
+opt.StepAmplitude = 0.002;              % step amplitude set
+t = (0:0.005:10);                       % time set
 figure(1); hold on;
-step(sys_delta, t, opt);
-sys_gamma = ss(A_f,B_f,[1,0,0,0],D);
+step(sys_delta, t, opt);                % response on delta
+sys_gamma = ss(A_f,B_f,[1,0,0,0],D);    % response on gamma
+sys_gamma_d = ss(A_f,B_f,[0,1,0,0],D);  % response on gamma_d
 step(sys_gamma, t, opt);
-sys_delta_d = ss(A_f,B_f,[0,0,0,1],D);
+sys_delta_d = ss(A_f,B_f,[0,0,0,1],D);  % response on delta_d
 step(sys_delta_d, t, opt);
 hold off;
-% u = [];
-% for n = 1:size(t,2)
-%     if t(n) < 0.5
-%         u(n) = 0;
-%     else 
-%         u(n) = 0.002;
-%     end
-% end
-% 
-% sys2 = ss(A_f,[0;0;1;0],C,D);
-% syslqrcl=ss([A-B*k],B*k(:,1),C,0);
-% figure(2); hold on;
-% lsim(sys2, u, t);
+
+% model using lsim, providing an initial condition for delta = 0.002
+
+% construct a step input, u
+ u = [];
+ for n = 1:size(t,2)
+     if t(n) < 0.2
+         u(n) = 0;
+     else 
+         u(n) = 0.002;
+     end
+ end
+ 
+ figure(2); hold on;
+ lsim(sys_delta, u, t, [0;0;0.002;0]);
+ lsim(sys_delta_d, u, t, [0;0;0.002;0]);
+ lsim(sys_gamma, u, t, [0;0;0.002;0]);
+ lsim(sys_gamma_d, u, t, [0;0;0.002;0]);
+ hold off;
+ 
+ % without the initial condition, can be seen that the same as
+ % using the step function
+ figure(3); hold on;
+ lsim(sys_delta, u, t, [0;0;0;0]);
+ lsim(sys_delta_d, u, t, [0;0;0;0]);
+ lsim(sys_gamma, u, t, [0;0;0;0]);
+ lsim(sys_gamma_d, u, t, [0;0;0;0]);
 % lsim(syslqrcl, u, t);
-% hold off;
-    
+ hold off;
+ 
+ %% Part C - 2.0
+ %                         /---------\
+ %      r         +     u  | .       |
+ %      ---> kr -->() ---->| X=Ax+Bu |--> y=Cx ---> y
+ %                -|       \---------/
+ %                 |             | 
+ %                 |<---- k <----|
+ %
+ % insert a reference for state (delta)
+ 
+ % x_d = (A-Bk)*x + (kr*B)*r
+ % x_d = A_star*x + B_star*r
+ % where r is a reference step input for delta
+ 
+ A_star = A-B*k;
+ C = [0,0,1,0];                             %design kr for only delta on output
+ D = 0;
+ kr = -(C*(A-B*k)^-1 *B)^-1;%-(rscale(ss(A-B*k,B,C,D),k) - 1.68);     %equal to -0.541 (rscale calculates Kr)
+ B_star = kr*B;                             
+
+% apply a step input with size of 0.002, plot response of each state
+% using the step() function
+t = (0:0.005:10);                       % time set
+figure(6); hold on;
+sys_delta = ss(A_star,B_star,C,D);
+sys_gamma = ss(A_star,B_star,[1,0,0,0],D);    % response on gamma
+sys_gamma_d = ss(A_star,B_star,[0,1,0,0],D);  % response on gamma_d
+sys_delta_d = ss(A_star,B_star,[0,0,0,1],D);  % response on delta_d
+
+lsim(sys_delta, u, t);
+lsim(sys_delta_d, u, t);
+lsim(sys_gamma, u, t);
+lsim(sys_gamma_d, u, t);
+% lsim(syslqrcl, u, t);
+
+hold off;
+%Nbar = rscale(ss(A-B*k,B,C,D),k)
+%aa = ss(A-B*k, -(Nbar-1.68)*B, C, D)
+%figure(7); lsim(aa, u, t)
+%% Part D
+
+P = [-8 -16 -4+1i -4-1i];           % pole locations for observer
+L = place(A', C', P)';              % poles at eig(A-LC);
+
+% state space model for complete state-feeback and observer
+
+A_p = [A -B*k; L*C A-B*k-L*C];
+B_p = [B*kr; B*kr];
+C_p = [C zeros(size(C))];
+C_p_hat = [zeros(size(C)) C];
+
+sys_p = ss(A_star, B_star, C, D);           % system which outputs plant delta
+sys_p_hat = ss(A_p, B_p, C_p, 0);       % system which outputs observer delta
+
+figure(8); hold on;
+no_input = zeros(size(t));              % no step input
+
+%show response for initial disturbance on plant delta
+lsim(sys_p, no_input, t, [0, 0, 0.002, 0]);     
+lsim(sys_p_hat, no_input, t, [0, 0, 0.002, 0, zeros(1,4)]); 
+hold off;
+
+%% Part E
+% to show the effect of observer poles on replicating the plant
+% Pol is a matrix containing the poles of the state-feedback component of
+% the plant
+
+% make the observer poles a multiple of the plant observes, my multiplying
+% Pol by an element in co before evaluating L.
+co = [2, 5, 10, 20];
+
+% For each multiple of Pol, plot the response against the plant for an
+% initial state offset -> delta by 0.002
+
+for i = 1:4
+    % outputing delta
+    C = [0,0,1,0];
+    % place poles of observer at a multiple of Pol
+    L = place(A', C', co(i)*Pol)';              % poles at eig(A-LC);
+    A_p = [A -B*k; L*C A-B*k-L*C];              % observer A
+    B_p = [B*kr; B*kr];                         % observer B
+    C_p = [C zeros(size(C))];                   % observer C
+
+    % retrieve the state-space model for an output of delta only
+    if i == 1
+        sys_delta = ss(A_star, B_star, C, D);        % system which outputs plant delta
+    end
+    sys_delta_hat = ss(A_p, B_p, C_p, 0);        % system which outputs observer delta
+    % retrieve the state-space model for an output of phi
+    C = [1,0,0,0];
+    C_p_hat = [ C, zeros(size(C))];
+    if i == 1
+        sys_phi = ss(A_star, B_star, C, D);        % system which outputs plant delta
+    end
+    sys_phi_hat = ss(A_p, B_p, C_p_hat, 0);        % system which outputs observer delta
+    figure(9); hold on;
+    % plot response on phi
+    if i == 1
+        % plot the plant response, only once
+        lsim(sys_phi, no_input, t, [0, 0, 0.002, 0]);
+    end
+    lsim(sys_phi_hat, no_input, t, [0, 0, 0.002, 0, zeros(1,4)]);
+    hold off;
+    figure(10); hold on;
+    % plot reponse on delta
+    if i == 1
+        % plot the plant response, only once
+        lsim(sys_delta, no_input, t, [0, 0, 0.002, 0]);
+    end
+    lsim(sys_delta_hat, no_input, t, [0, 0, 0.002, 0, zeros(1,4)]);
+    hold off;
+
+end 
+
+%%
+i = 1;
+    % outputing delta
+    C = [0,0,1,0];
+    % place poles of observer at a multiple of Pol
+    L = place(A', C', [-15+7.5i -15-7.5i -20+10i -20-10i])';              % poles at eig(A-LC);
+    A_p = [A -B*k; L*C A-B*k-L*C];              % observer A
+    B_p = [B*kr; B*kr];                         % observer B
+    C_p = [C zeros(size(C))];                   % observer C
+
+    % retrieve the state-space model for an output of delta only
+    if i == 1
+        sys_delta = ss(A_star, B_star, C, D);        % system which outputs plant delta
+    end
+    sys_delta_hat = ss(A_p, B_p, C_p, 0);        % system which outputs observer delta
+    % retrieve the state-space model for an output of phi
+    C = [1,0,0,0];
+    C_p_hat = [ C, zeros(size(C))];
+    if i == 1
+        sys_phi = ss(A_star, B_star, C, D);        % system which outputs plant delta
+    end
+    sys_phi_hat = ss(A_p, B_p, C_p_hat, 0);        % system which outputs observer delta
+    figure(11); hold on;
+    % plot response on phi
+    if i == 1
+        % plot the plant response, only once
+        lsim(sys_phi, no_input, t, [0, 0, 0.002, 0]);
+    end
+    lsim(sys_phi_hat, no_input, t, [0, 0, 0.002, 0, zeros(1,4)]);
+    hold off;
+    figure(11); hold on;
+    % plot reponse on delta
+    if i == 1
+        % plot the plant response, only once
+        lsim(sys_delta, no_input, t, [0, 0, 0.002, 0]);
+    end
+    lsim(sys_delta_hat, no_input, t, [0, 0, 0.002, 0, zeros(1,4)]);
+    hold off;
+
+
+
+
